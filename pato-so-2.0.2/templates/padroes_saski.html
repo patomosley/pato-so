@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padrões SASKI - PATO SO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-layout">
+        {% include 'sidebar.html' %}
+        
+        <div class="main-content">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            
+            <div class="content-area">
+                <h1>PADRÕES SASKI</h1>
+                <h2>📝 Gerador de Chamados</h2>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="form-group">
+                    <label for="cliente">Nome do Cliente:</label>
+                    <input type="text" id="cliente">
+                </div>
+
+                <div class="form-group">
+                    <label for="codigo">Código de Contrato:</label>
+                    <input type="text" id="codigo">
+                </div>
+
+                <div class="form-group">
+                    <label for="setor">Setor:</label>
+                    <select id="setor" onchange="atualizarTipos()">
+                        <option value="">Selecionar Opção</option>
+                        <option value="GPON">GPON</option>
+                        <option value="MONITORAMENTO SUPORTE">MONITORAMENTO SUPORTE</option>
+                        <option value="NOC-ENGENHARIA">NOC-ENGENHARIA</option>
+                        <option value="NOC-OM">NOC-OM</option>
+                        <option value="NOC-SO">NOC-SO</option>
+                        <option value="TELEFONIA">TELEFONIA</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo de Solicitação:</label>
+                    <select id="tipo">
+                        <option value="">Selecionar Opção</option>
+                    </select>
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-primary" onclick="gerarChamado()">Gerar Chamado</button>
+                    <button class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3>
+                Título
+                <button class="copy-button" onclick="copiarTitulo()" title="Copiar Título">
+                    <svg fill="currentColor" viewBox="0 0 255.99316 255.99316" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M219.99268,39.99414v144.001a4,4,0,0,1-8,0V43.99414H71.98584a4,4,0,0,1,0-8H215.99268A4.0002,4.0002,0,0,1,219.99268,39.99414Zm-32,32.001v144a4.0002,4.0002,0,0,1-4,4H39.98584a4.0002,4.0002,0,0,1-4-4v-144a4.0002,4.0002,0,0,1,4-4H183.99268A4.0002,4.0002,0,0,1,187.99268,71.99512Zm-8,4H43.98584v136H179.99268Z"/>
+                    </svg>
+                </button>
+            </h3>
+            <p id="titulo"></p>
+
+            <h3>
+                Descrição
+                <button class="copy-button" onclick="copiarDescricao()" title="Copiar Descrição">
+                    <svg fill="currentColor" viewBox="0 0 255.99316 255.99316" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M219.99268,39.99414v144.001a4,4,0,0,1-8,0V43.99414H71.98584a4,4,0,0,1,0-8H215.99268A4.0002,4.0002,0,0,1,219.99268,39.99414Zm-32,32.001v144a4.0002,4.0002,0,0,1-4,4H39.98584a4.0002,4.0002,0,0,1-4-4v-144a4.0002,4.0002,0,0,1,4-4H183.99268A4.0002,4.0002,0,0,1,187.99268,71.99512Zm-8,4H43.98584v136H179.99268Z"/>
+                    </svg>
+                </button>
+            </h3>
+            <pre id="descricao"></pre>
+
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+    <div class="alert-popup" id="alertPopup"></div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+        
+        // Função para alternar submenus
+        function toggleMenu(element) {
+            const submenu = element.nextElementSibling;
+            submenu.classList.toggle('active');
+            element.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
+

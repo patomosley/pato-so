@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PATO SO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/pato.png') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include 'sidebar.html' %}
+        
+        <div class="main-content">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            
+            <div class="content-area">
+                <h1>OPEN TICKET SASKI</h1>
+                
+                <!-- Painel de Grupos -->
+                {% if groups_data %}
+                <div class="groups-panel">
+                    <h2>👥 Usuários do Grupo</h2>
+                    {% for group_data in groups_data %}
+                    <div class="group-card">
+                        <h3>{{ group_data.group.name }}</h3>
+                        <p class="group-description">{{ group_data.group.description }}</p>
+                        
+                        <div class="users-grid">
+                            {% for user in group_data.users %}
+                            <div class="user-card">
+                                <div class="user-status {{ 'online' if user.is_online else 'offline' }}"></div>
+                                <div class="user-info">
+                                    <span class="user-name">{{ user.username }}</span>
+                                    <span class="badge badge-{{ user.role.lower() }}">{{ user.role }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+        
+        // Função para alternar submenus
+        function toggleMenu(element) {
+            const submenu = element.nextElementSibling;
+            submenu.classList.toggle('active');
+            element.classList.toggle('active');
+        }
+        
+        // Atualizar status online a cada 30 segundos
+        setInterval(() => {
+            fetch('/api/heartbeat', {method: 'POST'});
+        }, 30000);
+    </script>
+</body>
+</html>

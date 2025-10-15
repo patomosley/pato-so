@@ -1,0 +1,146 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>🦆 PATO SO</h2>
+        <p class="user-badge">{{ session.username }}</p>
+        <span class="role-badge role-{{ session.role.lower() }}">{{ session.role }}</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <!-- Dashboard -->
+        <div class="menu-item">
+            <a href="{{ url_for('dashboard') }}" class="menu-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="menu-icon">🏠</span>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </div>
+        
+        <!-- Padrões SASKI -->
+        <div class="menu-item">
+            <a href="{{ url_for('padroes_saski') }}" class="menu-link {% if request.endpoint == 'padroes_saski' %}active{% endif %}">
+                <span class="menu-icon">📝</span>
+                <span class="menu-text">Padrões SASKI</span>
+            </a>
+        </div>
+        
+        <!-- Gerenciar Grupos (apenas OWNER) -->
+        {% if session.role == 'OWNER' %}
+        <div class="menu-item">
+            <a href="{{ url_for('manage_groups') }}" class="menu-link {% if request.endpoint == 'manage_groups' %}active{% endif %}">
+                <span class="menu-icon">🏢</span>
+                <span class="menu-text">Gerenciar Grupos</span>
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Painel Admin (apenas para Admin+) -->
+        {% if session.role in ['OWNER', 'SUPER_ADMIN', 'ADMIN'] %}
+        <div class="menu-item">
+            <a href="{{ url_for('admin_panel') }}" class="menu-link {% if request.endpoint == 'admin_panel' %}active{% endif %}">
+                <span class="menu-icon">👥</span>
+                <span class="menu-text">Gerenciar Usuários</span>
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Logs (apenas para Super Admin+) -->
+        {% if session.role in ['OWNER', 'SUPER_ADMIN'] %}
+        <div class="menu-item">
+            <a href="{{ url_for('view_logs') }}" class="menu-link {% if request.endpoint == 'view_logs' %}active{% endif %}">
+                <span class="menu-icon">📋</span>
+                <span class="menu-text">Logs do Sistema</span>
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Sistemas Revan -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">🔧</span>
+                <span class="menu-text">Sistemas Revan</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="https://novorevan.brisanet.net.br/" target="_blank">Revan</a>
+                <a href="https://revan-atendimento.brisanet.net.br/" target="_blank">Yoda</a>
+                <a href="https://estoque.brisanet.net.br/" target="_blank">Estoque</a>
+                <a href="https://revan-estoque.brisanet.net.br/supplychain/" target="_blank">SupplyChain</a>
+            </div>
+        </div>
+
+        <!-- Suporte e Monitoramento -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">📊</span>
+                <span class="menu-text">Suporte e Monitoramento</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="https://saski.brisanet.net.br" target="_blank">Saski</a>
+                <a href="https://netboxcop.brisanet.net.br" target="_blank">Netbox (VPN)</a>
+                <a href="https://librenms.brisanet.net.br" target="_blank">LibreNMS (VPN)</a>
+                <a href="https://zabbix-corp.brisanet.net.br" target="_blank">Zabbix</a>
+                <a href="https://libre-portalcorp-01.brisanet.net.br" target="_blank">Monitoramento LibreNMS</a>
+            </div>
+        </div>
+
+        <!-- Sistema de Consulta -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">🔍</span>
+                <span class="menu-text">Sistema de Consulta</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="/whois/whois.html">Whois</a>
+                <a href="/ip-calc/ip-calc.html">IP Calc</a>
+                <a href="/mac-vendor/mac-vendor.html">MAC Vendor</a>
+                <a href="/mkscript/index.html">MK Script</a>
+            </div>
+        </div>
+
+        <!-- Solicitações de Material -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">📦</span>
+                <span class="menu-text">Solicitações de Material</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="/material-centralizado/material-centralizado.html">Material Centralizado</a>
+                <a href="/sistema_solicitacao_material/sistema_solicitacao_material.html">Material Tiflux</a>
+            </div>
+        </div>
+
+        <!-- SDWAN Fortinet -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">🌐</span>
+                <span class="menu-text">SDWAN Fortinet</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="/sdwan/index.html">Solicitação e Transferência SDWAN</a>
+            </div>
+        </div>
+
+        <!-- Solicitação SAP -->
+        <div class="menu-category">
+            <h3 onclick="toggleMenu(this)">
+                <span class="menu-icon">📝</span>
+                <span class="menu-text">Solicitação SAP</span>
+                <span class="arrow">▼</span>
+            </h3>
+            <div class="submenu">
+                <a href="/chamados_sap/criar_sap.html">Criar Diagrama</a>
+                <a href="/chamados_sap/sap_jira.html">Abrir Chamado Jira</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout') }}" class="logout-btn">
+            <span class="menu-icon">🚪</span>
+            <span class="menu-text">Sair</span>
+        </a>
+    </div>
+</div>

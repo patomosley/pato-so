@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - PATO SO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-layout">
+        {% include 'sidebar.html' %}
+        
+        <div class="main-content">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            
+            <div class="top-bar">
+                <h1>Gerenciamento de Usuários</h1>
+            </div>
+            
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Botão para criar novo usuário -->
+                <div class="action-bar">
+                    <button onclick="openCreateModal()" class="btn btn-primary">
+                        ➕ Criar Novo Usuário
+                    </button>
+                </div>
+                
+                <!-- Tabela de usuários -->
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuário</th>
+                                <th>Cargo</th>
+                                <th>Grupos</th>
+                                <th>Criado em</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in users_with_groups %}
+                            <tr>
+                                <td>{{ item.user.id }}</td>
+                                <td><strong>{{ item.user.username }}</strong></td>
+                                <td>
+                                    <span class="badge badge-{{ item.user.role.lower() }}">
+                                        {{ item.user.role }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% for group in item.groups %}
+                                    <span class="badge badge-group">{{ group.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ item.user.created_at }}</td>
+                                <td>
+                                    {% if item.user.active %}
+                                        <span class="badge badge-success">Ativo</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Inativo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.user.id == session.user_id %}
+                                        <span class="text-muted">Você</span>
+                                    {% else %}
+                                        <button onclick="openEditModal({{ item.user.id }}, '{{ item.user.username }}', '{{ item.user.role }}', [{% for g in item.groups %}{{ g.id }}{% if not loop.last %},{% endif %}{% endfor %}])" 
+                                                class="btn btn-sm btn-warning">
+                                            ✏️ Editar
+                                        </button>
+                                        <button onclick="deleteUser({{ item.user.id }}, '{{ item.user.username }}')" 
+                                                class="btn btn-sm btn-danger">
+                                            🗑️ Deletar
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Criar Usuário -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar Novo Usuário</h2>
+                <span class="close" onclick="closeCreateModal()">&times;</span>
+            </div>
+            <form method="POST" action="{{ url_for('create_user') }}">
+                <div class="form-group">
+                    <label for="create_username">Nome de Usuário</label>
+                    <input type="text" id="create_username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="create_password">Senha</label>
+                    <input type="password" id="create_password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="create_role">Cargo</label>
+                    <select id="create_role" name="role" required>
+                        {% if session.role == 'OWNER' %}
+                        <option value="OWNER">Owner</option>
+                        <option value="SUPER_ADMIN">Super Admin</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                        {% elif session.role == 'SUPER_ADMIN' %}
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                        {% else %}
+                        <option value="USER">User</option>
+                        {% endif %}
+                    </select>
+                </div>
+                
+                {% if session.role == 'OWNER' %}
+                <div class="form-group">
+                    <label>Grupos (selecione um ou mais)</label>
+                    <div class="checkbox-group">
+                        {% for group in all_groups %}
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="groups" value="{{ group.id }}">
+                            <span>{{ group.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Usuário -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Usuário</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editForm" method="POST">
+                <input type="hidden" id="edit_user_id" name="user_id">
+                
+                <div class="form-group">
+                    <label for="edit_username">Nome de Usuário</label>
+                    <input type="text" id="edit_username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_password">Nova Senha (deixe em branco para manter)</label>
+                    <input type="password" id="edit_password" name="password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_role">Cargo</label>
+                    <select id="edit_role" name="role" required>
+                        {% if session.role == 'OWNER' %}
+                        <option value="OWNER">Owner</option>
+                        <option value="SUPER_ADMIN">Super Admin</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                        {% elif session.role == 'SUPER_ADMIN' %}
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                        {% else %}
+                        <option value="USER">User</option>
+                        {% endif %}
+                    </select>
+                </div>
+                
+                {% if session.role == 'OWNER' %}
+                <div class="form-group">
+                    <label>Grupos (selecione um ou mais)</label>
+                    <div class="checkbox-group" id="edit_groups_container">
+                        {% for group in all_groups %}
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="groups" value="{{ group.id }}" class="edit-group-checkbox">
+                            <span>{{ group.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="modal-footer">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Deletar Usuário -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Exclusão</h2>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <p>Tem certeza que deseja deletar o usuário <strong id="delete_username"></strong>?</p>
+            <p class="text-danger">Esta ação não pode ser desfeita!</p>
+            
+            <form id="deleteForm" method="POST">
+                <div class="modal-footer">
+                    <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Deletar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script>
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('show');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('show');
+        }
+        
+        function openEditModal(userId, username, role, groupIds) {
+            document.getElementById('edit_user_id').value = userId;
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_role').value = role;
+            document.getElementById('editForm').action = `/admin/edit_user/${userId}`;
+            
+            // Marcar grupos selecionados
+            document.querySelectorAll('.edit-group-checkbox').forEach(checkbox => {
+                checkbox.checked = groupIds.includes(parseInt(checkbox.value));
+            });
+            
+            document.getElementById('editModal').classList.add('show');
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+        
+        function deleteUser(userId, username) {
+            document.getElementById('delete_username').textContent = username;
+            document.getElementById('deleteForm').action = `/admin/delete_user/${userId}`;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+        
+        // Função para alternar submenus
+        function toggleMenu(element) {
+            const submenu = element.nextElementSibling;
+            submenu.classList.toggle('active');
+            element.classList.toggle('active');
+        }
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+        
+        // Fechar modais ao clicar fora
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
+

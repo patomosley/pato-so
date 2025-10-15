@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Grupos - PATO SO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-layout">
+        {% include 'sidebar.html' %}
+        
+        <div class="main-content">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            
+            <div class="top-bar">
+                <h1>Gerenciar Grupos</h1>
+            </div>
+            
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Botão para criar novo grupo -->
+                <div class="action-bar">
+                    <button onclick="openCreateGroupModal()" class="btn btn-primary">
+                        ➕ Criar Novo Grupo
+                    </button>
+                </div>
+                
+                <!-- Lista de grupos -->
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome do Grupo</th>
+                                <th>Descrição</th>
+                                <th>Criado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in groups %}
+                            <tr>
+                                <td>{{ group.id }}</td>
+                                <td><strong>{{ group.name }}</strong></td>
+                                <td>{{ group.description }}</td>
+                                <td>{{ group.created_at }}</td>
+                                <td>
+                                    <button onclick="editGroup({{ group.id }}, '{{ group.name }}', '{{ group.description }}')" 
+                                            class="btn btn-sm btn-warning">
+                                        ✏️ Editar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Criar Grupo -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar Novo Grupo</h2>
+                <span class="close" onclick="closeCreateGroupModal()">&times;</span>
+            </div>
+            <form method="POST" action="{{ url_for('create_group') }}">
+                <div class="form-group">
+                    <label for="group_name">Nome do Grupo</label>
+                    <input type="text" id="group_name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="group_description">Descrição</label>
+                    <textarea id="group_description" name="description" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-primary);"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCreateGroupModal()" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Grupo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openCreateGroupModal() {
+            document.getElementById('createGroupModal').classList.add('show');
+        }
+        
+        function closeCreateGroupModal() {
+            document.getElementById('createGroupModal').classList.remove('show');
+        }
+        
+        function editGroup(id, name, description) {
+            alert('Funcionalidade de edição será implementada em breve!');
+        }
+        
+        // Função para alternar submenus
+        function toggleMenu(element) {
+            const submenu = element.nextElementSibling;
+            submenu.classList.toggle('active');
+            element.classList.toggle('active');
+        }
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+        
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('createGroupModal');
+            if (event.target == modal) {
+                closeCreateGroupModal();
+            }
+        }
+    </script>
+</body>
+</html>
+
